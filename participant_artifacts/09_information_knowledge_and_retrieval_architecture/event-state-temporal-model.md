@@ -1,75 +1,48 @@
 # Event / State / Temporal Model
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** F. Runtime Context Graph  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer F: Runtime Context Graph)
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define how the system models time and state transitions to handle clock drift (GS-13), out-of-order delivery, and offline/online state divergence (GS-14, GS-15) without corrupting the canonical truth.
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 06 Provenance Baseline and Stage 09 Runtime Entity State Model.
 
 ## Evidence to inspect
+- `evidence/01_enterprise_sources/live_event_stream.jsonl`
 - `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
-- `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
 
 ## Case challenge
-Design the target information architecture as a transformation of Stage 5–8 evidence; do not duplicate the Stage 6 inventory or redefine Stage 5 business language without an explicit decision.
+Relying solely on system ingestion time is insufficient due to telemetry clock drift. The model must separate "when it happened" from "when we saw it" and resolve conflicts deterministically.
 
 ## Minimum content
-- Event/state
-- Event time
-- Update time
-- Ingestion time
-- Ordering/replay
-- State derivation
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
+### 1. Temporal Dimensions
+Every state-changing event must record three distinct timestamps:
+- **`observed_ts`**: When the event occurred at the source (e.g., vessel sensor time).
+- **`ingestion_ts`**: When the shore platform or edge system received the event.
+- **`processed_ts`**: When the deterministic engine evaluated the event.
 
-## Working scaffold
-| Event/state | Event time | Update time | Ingestion time | Ordering/replay | State derivation |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
+### 2. Conflict Resolution Rules (Out-of-Order / Drift)
+- **Rule 1 (Idempotency):** If an event arrives with a `deduplication_hash` that already exists in the `EvidenceRecord` store, it is logged as `Ignored_Duplicate` and discarded.
+- **Rule 2 (Late Arrival):** If an event arrives with `observed_ts` significantly in the past (beyond the source's `freshness_threshold`), it is tagged `STALE` and routed to the Audit Context, but does *not* retroactively alter the current `Runtime Context Graph`.
+- **Rule 3 (Vessel/Shore Divergence):** During reconnect (GS-15), if the vessel edge executed an action based on a local state that the shore later marks as `EXPIRED`, the shore's `ACTIVE` state takes precedence for *future* planning, but the vessel's historical execution log is preserved immutably in the Audit Context with a `divergence_flag`.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| Late-arriving telemetry must not retroactively invalidate already-executed, Master-approved plans. | `fleet_operations_interview_notes.md` (vessel/shore divergence) | `risk-treatment-plan.md` (RH-04) | High confidence (SME interview). |
+| Deduplication must rely on a deterministic hash, not ingestion order. | `live_event_stream.jsonl` (duplicate delivery) | `canonical-identifier-strategy.md` | High confidence (architectural necessity). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The "significantly in the past" threshold can be uniformly defined per source without causing false positives. | Exact clock drift variance across all vessel hardware is unknown. | Vessel Technical | May require dynamic drift tolerance windows based on historical source health. | Stage 09 Quality

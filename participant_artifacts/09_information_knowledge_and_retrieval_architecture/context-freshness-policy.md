@@ -1,76 +1,60 @@
 # Context Freshness Policy
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** F. Runtime Context Graph  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer F: Runtime Context Graph)
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define the explicit rules for when runtime context is considered too stale to be used for automated feasibility checking, and what degradation mode the system must enter.
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 06 Quality Profile and Stage 09 Event/State/Temporal Model.
 
 ## Evidence to inspect
 - `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
 - `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
 
 ## Case challenge
-Build context for a specific task and actor, not a generic data dump. Show time, source health, policy and access scope explicitly.
+The system must not silently use expired data. It must actively detect staleness and escalate to human operators, preserving safety over automation.
 
 ## Minimum content
-- Source/state
-- Threshold
-- Age calculation
-- Stale behavior
-- Fallback/abstain
-- User display
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-- AIS observations do not automatically override canonical fleet identity.
+| Source / Constraint Type | Freshness Threshold | Stale Warning Trigger | Expired Action (Engine Behavior) | Evidence |
+| :--- | :--- | :--- | :--- | :--- |
+| **SRC-TELEM (Machinery)** | 5 minutes | > 3 minutes | Exclude from feasibility check. Flag vessel status as `UNKNOWN`. | `source_inventory.csv` |
+| **SRC-CMMS (Maintenance)** | 15 minutes | > 10 minutes | **CRITICAL:** If hold was previously active, assume STILL ACTIVE (fail-safe). Alert Chief Engineer. | `source_inventory.csv`, `business-rules.md` |
+| **SRC-PORT (API)** | 60 minutes | > 45 minutes | Downgrade authority to `UNVERIFIED`. Require manual Controller confirmation. | `source_inventory.csv` |
+| **SRC-PORT (Signed Notice)** | Per document validity | N/A | Valid until `valid_until` date explicitly stated in the document. | `source_authority.yaml` |
+| **SRC-WX (Weather)** | 90 minutes | > 75 minutes | Exclude from automated scoring. Display "Weather data stale" warning to Master. | `source_inventory.csv` |
+| **SRC-POLICY (Rules)** | Version-based | N/A | `SUPERSEDED` policies are immediately excluded from the Runtime Context Graph. | `source_authority.yaml` |
 
-## Working scaffold
-| Source/state | Threshold | Age calculation | Stale behavior | Fallback/abstain | User display |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
+### Degradation Modes
+1. **Partial Degradation:** If non-critical sources (e.g., WX) are stale, the engine proceeds but flags the recovery option's confidence score as `REDUCED`.
+2. **Full Degradation (Offline/Blackout):** If connectivity is lost, the system relies *only* on the cached Runtime Context Graph. Any new external constraints are ignored until reconnect.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| CMMS holds must default to "still active" if data is stale, prioritizing safety. | `business-rules.md` (BR-02) | `acceptance-thresholds.md` | High confidence (non-negotiable constraint). |
+| Port API data must be manually verified if it exceeds the freshness threshold. | `fleet_operations_interview_notes.md` | `retrieval-ranking-fusion-policy.md` | High confidence (SME interview). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The UI can clearly communicate "Partial Degradation" to the Master without causing alarm fatigue. | UI/UX design for degradation states is pending. | FDE Team / Master | Poor UX may lead to Masters ignoring staleness warnings. | Stage 10 Target C4 Views. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is8 complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.

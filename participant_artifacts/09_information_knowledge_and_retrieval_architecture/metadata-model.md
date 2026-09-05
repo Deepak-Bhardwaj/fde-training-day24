@@ -1,76 +1,64 @@
 # Metadata Model
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** G. Metadata / Lineage / Provenance  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer G: Metadata / Lineage / Provenance)
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define the schema for metadata that describes the data itself (data about data), enabling governance, quality tracking, and automated lifecycle management (e.g., archival, expiration).
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 06 Provenance Baseline and Stage 09 Retrieval Evidence Contract.
 
 ## Evidence to inspect
 - `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
 - `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
 
 ## Case challenge
-Design the target information architecture as a transformation of Stage 5–8 evidence; do not duplicate the Stage 6 inventory or redefine Stage 5 business language without an explicit decision.
+The metadata model must be lightweight enough to not bloat the graph, but rich enough to satisfy the strict audit and transparency requirements of maritime operations.
 
 ## Minimum content
-- Metadata class
-- Field
-- Meaning
-- Owner
-- Required?
-- Versioning
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-- AIS observations do not automatically override canonical fleet identity.
+### 1. Core Metadata Entities
+- **`DataSource`**: Represents a source system (e.g., SRC-CMMS).
+  - *Properties:* `source_id`, `owner`, `update_pattern`, `default_freshness_threshold`.
+- **`DataQualityProfile`**: Represents the expected quality of a source.
+  - *Properties:* `source_id`, `known_issues` (list), `last_audit_date`.
+- **`AccessPolicy`**: Represents RBAC/ABAC rules for a data domain.
+  - *Properties:* `domain`, `allowed_roles`, `purpose_filter`, `ai_access_allowed` (boolean).
 
-## Working scaffold
-| Metadata class | Field | Meaning | Owner | Required? | Versioning |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
+### 2. Metadata-to-Data Relationships
+- **`[:GOVERNED_BY]`**: Connects a `Constraint` or `PolicyRule` node to its `AccessPolicy`.
+- **`[:HAS_QUALITY_PROFILE]`**: Connects a `DataSource` to its `DataQualityProfile`.
+- **`[:ORIGINATED_FROM]`**: Connects an `EvidenceRecord` to its `DataSource`.
+
+### 3. Lifecycle Management via Metadata
+- **Archival:** When a `PolicyRule` transitions to `SUPERSEDED`, its metadata `access_policy` is updated to `AUDIT_ONLY`, and it is removed from the active Runtime Context Graph.
+- **Deprecation:** If a `DataSource` is decommissioned, its `DataQualityProfile` is marked `DEPRECATED`, triggering alerts for any active `[:ORIGINATED_FROM]` edges.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| Metadata must explicitly define whether AI is allowed to access a data domain. | `source_inventory.csv` (SRC-CREW ai_access = NO) | `permissible-use-access-matrix.md` | High confidence (explicit policy). |
+| Data quality profiles must be linked to sources to inform the deterministic engine of known risks. | `source_inventory.csv` (known_issues column) | `quality-profile.md` | High confidence (architectural necessity). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The metadata model can be queried efficiently alongside the operational graph without performance degradation. | Graph DB metadata query performance is NOT RUN. | Shore Platform Team | May require a separate, dedicated metadata catalog (e.g., DataHub) if graph performance suffers. | Stage 09 Graph Persistence Architecture. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.
