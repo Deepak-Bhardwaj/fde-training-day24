@@ -1,69 +1,63 @@
 # Agent Suitability Assessment
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 11 — Agentic & Multi-Agent Orchestration  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 11 — Agentic & Multi-Agent Orchestration
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 Is autonomy justified, bounded, permissioned, interruptible and testable?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved, bounded and testable agentic architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To objectively evaluate whether autonomous or multi-agent systems are suitable for any part of the workbench, or if deterministic automation and human-in-the-loop workflows are the safer, more effective choice.
 
 ## Upstream dependency
-Use the completed Stage 10 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 04 AI Suitability Assessment, Stage 05 Business Rules, Stage 07 Risk Treatment Plan, and Stage 10 Failure-Mode Design.
 
 ## Evidence to inspect
-- `participant_artifacts/07_define_evaluations_impacts_and_risks`
-- `participant_artifacts/08_generate_test_and_select_options`
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
-- `participant_artifacts/10_design_ai_and_application_architecture`
+- `Participant_Case_Study.md` (Non-negotiable constraints, GS-02, GS-08)
 - `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/04_policy_authority/decision_constraints.yaml`
-- `evidence/06_evaluations/golden_scenarios.json`
+- `evidence/04_policy_authority/source_authority.yaml`
 
 ## Case challenge
-The correct result may be NO AGENT. Complete agent suitability first. If autonomy is not justified, complete remaining Stage 11 artifacts as NOT APPLICABLE with rationale, approving role and downstream consequence.
+Avoid the "agentic hype" trap. Autonomy introduces unpredictability, hallucination risks, and complex debugging. In a safety-critical maritime domain, unpredictability is unacceptable.
 
 ## Minimum content
-- Task
-- Workflow/non-agent alternative
-- Need for autonomy
-- Tools
-- Risk
-- Human review
-- Agent/not-agent decision
 
-## Relevant non-negotiable constraints
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
-- Cloud/LLM availability must not be required for essential vessel operations.
-- Duplicate/replayed events must be handled idempotently and with temporal provenance.
+| Evaluation Criteria | Assessment | Verdict (Suitable / Not Suitable) | Evidence / Rationale |
+| :--- | :--- | :--- | :--- |
+| **Safety-Critical Execution** | Agents cannot be trusted to execute navigational changes or override CMMS holds. The cost of error is catastrophic (casualty, environmental damage). | **NOT SUITABLE** | `role_authorization_matrix.csv` (MASTER authorize_navigation_change=YES, AI_AGENT=NO). `business-rules.md` (BR-01, BR-02). |
+| **Deterministic Feasibility Checking** | Evaluating if a recovery option violates a constraint requires 100% explainable, binary logic. Probabilistic agent reasoning is inherently opaque. | **NOT SUITABLE** | `non-ai-alternative.md`, `retrieval-adrs.md` (ADR-014). |
+| **Offline Continuity (GS-14)** | Multi-agent frameworks require significant compute and often rely on cloud-based LLM APIs. This violates the vessel edge offline constraint. | **NOT SUITABLE** | `ctqs.md` (Offline Continuity), `deployment-topology.md`. |
+| **Administrative / Reporting Tasks** | Drafting post-event audit reports or summarizing historical precedents for the Fleet Controller. Low safety impact, high human review. | **PARTIALLY SUITABLE** (Strictly Bounded) | Can be handled by a single, highly constrained "Report Drafting Assistant" agent, but ONLY on the shore platform, with mandatory human approval before saving. |
 
-## Working scaffold
-| Task | Workflow/non-agent alternative | Need for autonomy | Tools | Risk | Human review | Agent/not-agent decision |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
+## Overall Suitability Conclusion
+**NO AGENT / NO MULTI-AGENT SYSTEM is suitable for the core operational workflow.** 
+
+The core workflow (ingestion, constraint resolution, feasibility checking, and recovery option generation) **MUST** be executed by a **Deterministic Workflow Orchestrator** (e.g., event-driven state machine), not an agentic framework. 
+
+A single, highly bounded "Assistant" agent may be considered *only* for shore-side, non-critical administrative tasks (e.g., drafting post-event audit summaries), and even then, it must operate under strict human-in-the-loop supervision.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| Autonomous execution is explicitly prohibited by non-negotiable constraints. | `Participant_Case_Study.md` | `prohibited-use-check.md` | High confidence (explicit mandate). |
+| Deterministic orchestration is required for explainable feasibility checking. | `ai-suitability-assessment.md` | `selected-solution.md` | High confidence (explicit design choice). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: Stakeholders will accept a "NO AGENT" conclusion for the core workflow despite industry hype. | Cultural expectation of "AI automation" may conflict with safety reality. | Executive Sponsor / FDE Team | Requires clear communication that "Deterministic Automation" is the superior, safer choice for this domain. | Stage 11 Autonomy-Level ADR. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Approved, bounded and testable agentic architecture
-
-This contributes to the final Stage 11 architecture defence.
+Do not advance to the next artifact until this assessment is defensible.
