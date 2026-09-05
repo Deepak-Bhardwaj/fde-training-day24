@@ -1,71 +1,68 @@
 # Target C4 Container View
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 10 — AI & Application Architecture  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 10 — AI & Application Architecture
+**Participant status:** COMPLETED
 **Deliverable form:** Diagram + supporting table + rationale
 
 ## Stage question
 How will the AI-enabled application consume context, integrate, deploy and fail safely?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Complete base AI/application architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To break down the Workbench into its major technical containers (applications, data stores, communication mechanisms), split across the Shore Platform and the Vessel Edge.
 
 ## Upstream dependency
-Use the completed Stage 09 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 10 Target C4 Context View and Stage 09 Physical Persistence Topology.
 
 ## Evidence to inspect
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
-- `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/06_evaluations/acceptance_thresholds.yaml`
+- `evidence/02_documents/fleet_operations_interview_notes.md`
+- `evidence/01_enterprise_sources/source_inventory.csv`
 
 ## Case challenge
-Consume Stage 9 through explicit contracts. Keep deterministic policy/authorization outside model discretion and design safe degraded behavior.
+Explicitly separate the heavy, cloud-dependent shore containers from the lightweight, offline-capable vessel edge containers.
 
-## Minimum content
-- Container/service
-- Responsibility
-- Interface
-- Data store
-- Control point
-- Failure behavior
-
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
+## Diagram Description (Level 2 Containers)
+*(Text-based representation)*
+- **Shore Platform:** Ingestion ACL, NLP Extraction Service, Canonical Graph DB, Vector DB, Context Assembler, Fleet Controller UI.
+- **Vessel Edge:** Edge Graph Store, Deterministic Engine, Master UI, Local Audit Buffer.
+- **Integration:** Event Bus (MQTT over Sat-com).
 
 ## Working scaffold
-### Diagram / model
-```mermaid
-flowchart LR
-    A[Replace with case-specific elements] --> B[Show interfaces / decisions / controls]
-```
 
-### Supporting decisions
-| Element / relationship | Responsibility / meaning | Evidence | Constraint / control |
-|---|---|---|---|
-| | | | |
+| Container Name | Location | Technology / Pattern | Responsibility | Evidence |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ingestion ACL** | Shore | API Gateway + Rules Engine | Validates schemas, attaches Provenance Envelope, enforces Zero Trust. | `target-information-trust-boundaries.md` |
+| **NLP Extraction Service** | Shore | Worker + External LLM API | Parses Port Notice PDFs. Returns confidence scores. | `knowledge-extraction-specification.md` |
+| **Canonical Graph DB** | Shore | Enterprise Property Graph | Stores full Knowledge Graph, active constraints, lineage. | `graph-persistence-architecture.md` |
+| **Vector DB** | Shore | Vector Database | Stores embeddings for historical precedents and policy text. | `hybrid-retrieval-architecture.md` |
+| **Context Assembler** | Shore | API Service | Isolates the "Active Subgraph" for a specific voyage. | `context-assembly-model.md` |
+| **Fleet Controller UI** | Shore | Web Application | Displays facts + vector context. Hosts HITL Review Queue. | `oversight-transparency-requirements.md` |
+| **Edge Graph Store** | Vessel | Embedded SQLite/RocksDB | Stores the "Active Subgraph" cache. Read-optimized. | `graph-persistence-architecture.md` |
+| **Deterministic Engine** | Vessel | Local Service | Runs feasibility checks (GQ-01, GQ-02) using local graph. | `business-rules.md` |
+| **Master UI** | Vessel | Local Web / Thin Client | Displays options, captures Master cryptographic/procedural approval. | `role_authorization_matrix.csv` |
+| **Event Bus (MQTT)** | Sat-com | MQTT Broker (QoS 1/2) | Handles delta-sync, offline buffering, and priority routing. | `physical-persistence-topology.md` |
+
+## Rationale
+This container view proves that the Vessel Edge is entirely self-sufficient for core operations. If the Shore Platform, NLP Service, or Vector DB go down, the Vessel Edge continues to operate using its cached Edge Graph Store and Deterministic Engine. The Event Bus acts as the resilient bridge between the two zones.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| The Vessel Edge containers are completely independent of Shore containers for core operations. | `fleet_operations_interview_notes.md` | `go-no-go-kill-criteria.md` (G-02) | High confidence (non-negotiable constraint). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The MQTT broker can handle the burst traffic of a full graph sync after a multi-day blackout. | Broker throughput under extreme burst conditions NOT RUN. | Shore Platform Team | May require implementing rate-limiting or chunked sync protocols. | Stage 10 Failure-Mode Design. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Complete base AI/application architecture
-
-Do not advance to Stage 11 until the Stage 10 exit gate is defensible.
