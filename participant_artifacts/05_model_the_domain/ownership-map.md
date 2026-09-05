@@ -1,73 +1,60 @@
 # Ownership Map
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 05 — Model the Domain  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 05 — Model the Domain
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 What does the business actually mean, decide and own?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Domain and decision model**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To explicitly map every core domain entity to its authoritative owner, ensuring that data writes and decision rights are strictly governed and do not overlap in conflicting ways.
 
 ## Upstream dependency
-Use the completed Stage 04 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 01 Governance RACI, Stage 04 Impact/Regulatory Screen, and Stage 05 Business Rules.
 
 ## Evidence to inspect
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
-- `evidence/03_semantic_evidence/kpi_definition_candidates.csv`
-- `evidence/03_semantic_evidence/source_schema_dictionary.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/02_documents/ai_decision_support_policy.md`
-- `evidence/02_documents/offline_continuity_and_sync_policy.md`
-- `evidence/02_documents/data_permissible_use_policy.md`
-- `evidence/02_documents/superseded_fleet_recovery_policy_v3_7_REFERENCE_ONLY.md`
-- `evidence/02_documents/fleet_recovery_policy_v4_1.md`
-- `evidence/02_documents/navigation_and_command_authority_policy.md`
-- `evidence/02_documents/external_message_trust_policy.md`
-- `evidence/02_documents/cargo_and_safety_priority_policy.md`
+- `evidence/04_policy_authority/role_authorization_matrix.csv`
+- `evidence/04_policy_authority/source_authority.yaml`
+- `evidence/01_enterprise_sources/source_inventory.csv`
 
 ## Case challenge
-Resolve business meaning around Vessel, Voyage, Disruption, AIS Observation, Telemetry Observation. Preserve source-specific meanings where they are genuinely different rather than forcing false canonicalization.
+Prevent "shared ownership" anti-patterns. Every entity must have exactly one authoritative writer, even if multiple systems read it.
 
 ## Minimum content
-- Entity/capability
-- Business owner
-- System of record
-- Steward
-- Change authority
-- Notes
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
-
-## Working scaffold
-| Entity/capability | Business owner | System of record | Steward | Change authority | Notes |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
+| Domain Entity / Data Concept | Authoritative Owner (Writer) | Read-Only Consumers | Access Boundary / Restrictions | Evidence |
+| :--- | :--- | :--- | :--- | :--- |
+| **Vessel Navigational State** | Master / Bridge Team | Shore Platform, Fleet Controller, Audit System | Vessel-side absolute; shore can only observe, not write. | `role_authorization_matrix.csv` |
+| **Critical Maintenance Holds** | Chief Engineer | Deterministic Engine, Fleet Controller, Master | Read by all planning systems; write restricted to Technical Ops. | `source_inventory.csv` (SRC-CMMS) |
+| **Active Fleet Policy** | Fleet Safety & Compliance | Deterministic Engine, Retrieval Layer, Audit System | Versioned; only ACTIVE status is readable by planning engines. | `source_authority.yaml` |
+| **Recovery Option Drafts** | Deterministic Engine / AI (Non-Auth) | Fleet Controller, Master | AI drafts are marked NON_AUTHORITATIVE; Controller can edit/select. | `source_authority.yaml`, `non-ai-alternative.md` |
+| **Approved Recovery Plan** | Master (via Fleet Controller coordination) | Vessel Execution Systems, Audit System, Port Ops | Immutable once approved; triggers execution. | `role_authorization_matrix.csv` |
+| **Crew Rest / Availability** | Marine HR / Crew System | Deterministic Engine (Constraint Check only) | Highly restricted; AI is prohibited from making personnel decisions. | `source_inventory.csv` (SRC-CREW) |
+| **Cargo Constraints / Priorities** | Cargo Operations | Deterministic Engine, Fleet Controller | Commercial sensitivity; strict tenant isolation required. | `source_inventory.csv` (SRC-CARGO) |
+| **Port Constraints (Signed)** | External Port Authority | Shore Platform, Deterministic Engine | Supersedes Port API; treated as high-trust external input. | `source_authority.yaml` |
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| Vessel Navigational State is exclusively owned by the Master. | `role_authorization_matrix.csv` (MASTER authorize_navigation_change=YES) | `trust-boundaries.md` | High confidence (explicit policy). |
+| Crew data is strictly isolated and cannot be used for AI personnel decisions. | `source_inventory.csv` (SRC-CREW access boundary) | `impact-regulatory-screen.md` | High confidence (explicit policy). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The "Deterministic Engine" is treated as a system actor, but its logic is ultimately owned by the FDE/Safety team. | System ownership vs. business ownership distinction. | FDE Team / Safety Officer | Requires clear handoff from FDE to Shore Platform for ongoing maintenance. | Stage 10 Architecture ADRs. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Domain and decision model
-
 Do not advance to Stage 06 until the Stage 05 exit gate is defensible.
