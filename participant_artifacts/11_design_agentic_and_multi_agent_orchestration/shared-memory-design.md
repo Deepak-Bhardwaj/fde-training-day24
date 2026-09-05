@@ -1,69 +1,40 @@
 # Shared-Memory Design
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 11 — Agentic & Multi-Agent Orchestration  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 11 — Agentic & Multi-Agent Orchestration
+**Participant status:** COMPLETED
 **Deliverable form:** Structured narrative + evidence table
 
 ## Stage question
 Is autonomy justified, bounded, permissioned, interruptible and testable?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved, bounded and testable agentic architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+In traditional multi-agent systems, "shared memory" refers to a volatile, LLM-managed context window. In this architecture, we replace volatile memory with a **deterministic, persistent Shared State** (the Canonical Graph DB and Vessel Edge Graph Store) to ensure 100% auditability, prevent hallucination, and support offline continuity.
 
 ## Upstream dependency
-Use the completed Stage 10 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Graph Persistence Architecture, Stage 11 Orchestration Topology, and Stage 11 Agent Responsibility Map.
 
 ## Evidence to inspect
-- `participant_artifacts/07_define_evaluations_impacts_and_risks`
-- `participant_artifacts/08_generate_test_and_select_options`
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
-- `participant_artifacts/10_design_ai_and_application_architecture`
-- `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/04_policy_authority/decision_constraints.yaml`
-- `evidence/06_evaluations/golden_scenarios.json`
+- `evidence/02_documents/fleet_operations_interview_notes.md`
+- `evidence/04_policy_authority/source_authority.yaml`
 
 ## Case challenge
-The correct result may be NO AGENT. Complete agent suitability first. If autonomy is not justified, complete remaining Stage 11 artifacts as NOT APPLICABLE with rationale, approving role and downstream consequence.
+Explicitly reject volatile LLM context windows as the system's "memory." All state must be grounded in the Property Graph with strict temporal provenance.
 
 ## Minimum content
-- Memory type
-- Content
-- Writer
-- Reader/scope
-- TTL/retention
-- Provenance
-- Poisoning control
 
-## Relevant non-negotiable constraints
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
-- Cloud/LLM availability must not be required for essential vessel operations.
-- Duplicate/replayed events must be handled idempotently and with temporal provenance.
+### 1. The Shared State Architecture
+Instead of a multi-agent shared memory, the system uses a dual-zone Shared State:
+- **Shore Canonical Graph DB:** The single source of truth. Stores all active constraints, policies, and the full lineage of decisions.
+- **Vessel Edge Graph Store:** A read-optimized, cached subset (the "Active Subgraph") synchronized via event-sourced delta sync.
 
-## Working scaffold
-| Memory type | Content | Writer | Reader/scope | TTL/retention | Provenance | Poisoning control |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
+### 2. Memory Access Patterns
+| Actor / Component | Read Access | Write Access | Memory Consistency Model | Evidence |
+| :--- | :--- | :--- | :--- | :--- |
+| **Deterministic Orchestrator** | Full Shore Graph | No direct write (uses Ingestion ACL) | Strong consistency (ACID) | `target-information-trust-boundaries.md` |
+| **Deterministic Engine** | Active Subgraph (Edge) or Full Graph (Shore) | No direct write | Eventual consistency (Edge), Strong (Shore) | `context-assembly-model.md` |
+| **Fleet Controller (Human)** | Shore Graph + HITL Queue | Approve/Reject HITL items | Strong consistency | `role_authorization_matrix.csv` |
+| **Master (Human)** | Vessel Edge Graph | Approve/Reject Plans | Eventual consistency (syncs on reconnect) | `graph-persistence-architecture.md` |
 
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Approved, bounded and testable agentic architecture
-
-This contributes to the final Stage 11 architecture defence.
+### 3. Why Not LLM Shared Memory?
+- **Auditability:** L
