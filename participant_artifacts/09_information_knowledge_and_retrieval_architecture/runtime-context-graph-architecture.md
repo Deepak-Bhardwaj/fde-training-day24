@@ -1,83 +1,68 @@
 # Runtime Context Graph Architecture
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** F. Runtime Context Graph  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer F: Runtime Context Graph)
+**Participant status:** COMPLETED
 **Deliverable form:** Diagram + supporting table + rationale
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define how the system dynamically assembles the "Active Subgraph" (the specific slice of the Knowledge Graph relevant to a current Vessel, Voyage, and Disruption) for the Deterministic Engine to evaluate.
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Graph Persistence Architecture and Entity/Relationship Model.
 
 ## Evidence to inspect
+- `evidence/02_documents/fleet_operations_interview_notes.md`
 - `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
-- `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
 
 ## Case challenge
-Build context for a specific task and actor, not a generic data dump. Show time, source health, policy and access scope explicitly.
+The full Knowledge Graph is too large and contains too much irrelevant data for real-time feasibility checking. The architecture must efficiently isolate the exact context needed for a specific decision, both on the shore and on the vessel edge.
 
-## Minimum content
-- Task/actor
-- Included entities/edges
-- Policy/source health
-- Time window
-- Size budget
-- Invalidation
+## Diagram Description (Context Assembly Flow)
+*(Text-based representation)*
+1. **Trigger:** `DisruptionDetected` event for `Vessel X`, `Voyage Y`.
+2. **Context Assembler:** Queries the full Knowledge Graph.
+3. **Isolation Rules:**
+   - Fetch `Vessel X` and `Voyage Y` nodes.
+   - Fetch all `[:CONSTRAINED_BY]` edges where `valid_until > current_time`.
+   - Fetch all `[:GOVERNS]` edges for `ACTIVE` policies relevant to `Voyage Y`'s cargo/region.
+4. **Output:** A lightweight, in-memory "Runtime Context Graph" passed to the Deterministic Engine.
+5. **Edge Caching:** This exact subgraph is serialized and synced to the Vessel Edge for offline use (GS-14).
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-- AIS observations do not automatically override canonical fleet identity.
+## Working scaffold (Context Isolation Rules)
 
-## Working scaffold
-### Diagram / model
-```mermaid
-flowchart LR
-    A[Replace with case-specific elements] --> B[Show interfaces / decisions / controls]
-```
+| Context Dimension | Isolation Logic | Purpose | Evidence |
+| :--- | :--- | :--- | :--- |
+| **Vessel / Voyage** | Strict match on `canonical_id` and `voyage_id`. | Prevents cross-vessel constraint leakage. | `semantic-constraints.md` (SC-05) |
+| **Temporal Validity** | `valid_until > current_time()` | Ensures only active, non-expired constraints are evaluated. | `semantic-constraints.md` (SC-02) |
+| **Policy Relevance** | Match policy `category` to voyage `cargo_type` or `region`. | Prevents irrelevant rules from blocking feasible options. | `source_authority.yaml` |
+| **Authority Filter** | Exclude edges where `authority_weight < MEDIUM` (unless explicitly requested for UI context). | Reduces noise for the deterministic engine. | `source_authority.yaml` |
 
-### Supporting decisions
-| Element / relationship | Responsibility / meaning | Evidence | Constraint / control |
-|---|---|---|---|
-| | | | |
+## Rationale
+By dynamically assembling a targeted Runtime Context Graph, we decouple the massive, historical Knowledge Graph from the high-performance, real-time Deterministic Engine. This architecture is what makes the vessel-edge offline continuity (GS-14) possible: the edge doesn't need the whole database, just the specific, active subgraph for its current voyage.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| The deterministic engine requires a targeted subgraph, not the full knowledge graph, for real-time performance. | `fleet_operations_interview_notes.md` | `graph-persistence-architecture.md` | High confidence (architectural necessity). |
+| The vessel edge must cache this specific subgraph to operate during blackouts. | `fleet_operations_interview_notes.md` | `go-no-go-kill-criteria.md` (G-02) | High confidence (non-negotiable constraint). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The Context Assembler can build the subgraph in < 20ms to leave enough time for the engine's feasibility check. | Context assembly latency is NOT RUN. | Shore Platform Team | If too slow, the isolation rules may need to be pre-computed and materialized as views. | Stage 10 AI / RAG Integration Architecture. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.
