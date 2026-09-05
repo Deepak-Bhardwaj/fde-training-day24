@@ -1,0 +1,22 @@
+{
+  "artifact": "Vector Schema",
+  "case": "Fleet Disruption & Voyage Recovery Intelligence Workbench",
+  "stage": 9,
+  "status": "TO_COMPLETE",
+  "participant_note": "Replace the empty arrays/objects with the case-specific design; keep authority, time, provenance and scope fields where applicable.",
+  "vector_schema": {
+    "collections": [],
+    "chunk_schema": {
+      "id": "",
+      "text": "",
+      "source_id": "",
+      "document_version": "",
+      "authority": "",
+      "as_of": "",
+      "access_scope": []
+    },
+    "metadata_filters": [],
+    "embedding_versioning": {},
+    "retention": {}
+  }
+}

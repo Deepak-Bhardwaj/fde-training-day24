@@ -1,0 +1,18 @@
+{
+  "artifact": "Ontology Schema",
+  "case": "Fleet Disruption & Voyage Recovery Intelligence Workbench",
+  "stage": 9,
+  "status": "TO_COMPLETE",
+  "participant_note": "Replace the empty arrays/objects with the case-specific design; keep authority, time, provenance and scope fields where applicable.",
+  "ontology": {
+    "classes": [],
+    "relationships": [],
+    "taxonomies": [],
+    "constraints": [],
+    "provenance_model": {
+      "source_field": "",
+      "authority_field": "",
+      "version_field": ""
+    }
+  }
+}

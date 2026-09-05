@@ -1,0 +1,19 @@
+{
+  "artifact": "Graph Schema",
+  "case": "Fleet Disruption & Voyage Recovery Intelligence Workbench",
+  "stage": 9,
+  "status": "TO_COMPLETE",
+  "participant_note": "Replace the empty arrays/objects with the case-specific design; keep authority, time, provenance and scope fields where applicable.",
+  "graph_schema": {
+    "node_types": [],
+    "edge_types": [],
+    "required_temporal_fields": [
+      "event_time",
+      "update_time",
+      "ingestion_time"
+    ],
+    "provenance_fields": [],
+    "constraints": [],
+    "indexes": []
+  }
+}
