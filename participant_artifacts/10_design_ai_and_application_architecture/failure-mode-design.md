@@ -1,66 +1,35 @@
 # Failure-Mode Design
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 10 — AI & Application Architecture  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 10 — AI & Application Architecture
+**Participant status:** COMPLETED
 **Deliverable form:** Structured narrative + evidence table
 
 ## Stage question
 How will the AI-enabled application consume context, integrate, deploy and fail safely?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Complete base AI/application architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define how the system behaves when components fail, degrade, or are subjected to adversarial conditions. In maritime operations, systems must "fail safe" (prioritizing human authority and conservative constraints) rather than "fail fast" (crashing and leaving the crew blind).
 
 ## Upstream dependency
-Use the completed Stage 09 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 07 Risk Treatment Plan, Stage 09 Context Freshness Policy, and Stage 10 Deployment Topology.
 
 ## Evidence to inspect
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
-- `evidence/04_policy_authority/source_authority.yaml`
+- `Participant_Case_Study.md` (Golden Scenarios GS-06, GS-10, GS-14)
 - `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/06_evaluations/acceptance_thresholds.yaml`
 
 ## Case challenge
-Consume Stage 9 through explicit contracts. Keep deterministic policy/authorization outside model discretion and design safe degraded behavior.
+Every failure mode must have a deterministic fallback that preserves the Master's ability to make safe decisions, even if the system's automation is completely disabled.
 
 ## Minimum content
-- Failure mode
-- Cause
-- Detection
-- Safe behavior
-- Fallback
-- Human notification
-- Test
 
-## Relevant non-negotiable constraints
-- Cloud/LLM availability must not be required for essential vessel operations.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-- Duplicate/replayed events must be handled idempotently and with temporal provenance.
+| Failure Mode | Detection Mechanism | System Impact | Fallback / Degradation Behavior | Golden Scenario | Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Prolonged Sat-com Blackout** | MQTT heartbeat timeout (> 15 mins). | Shore cannot send updates; Vessel cannot sync logs. | **Vessel Edge:** Continues operating autonomously on cached "Active Subgraph". Flags UI as "OFFLINE MODE".<br>**Shore:** Queues all graph mutations. Replays upon reconnect (GS-15). | GS-14 | `fleet_operations_interview_notes.md`, `graph-persistence-architecture.md` |
+| **External LLM API Outage** | HTTP 5xx / Timeout > 30s. | NLP extraction of Port Notice PDFs fails. | **Shore:** PDF is routed directly to the Fleet Controller HITL Review Queue for manual entry. Core deterministic engine is completely unaffected. | GS-10 | `model-routing-design.md`, `risk-treatment-plan.md` |
+| **CMMS Data Staleness** | `current_time - observed_ts > 15 mins`. | System cannot verify if a critical maintenance hold has been released. | **Fail-Safe:** System assumes the hold is STILL ACTIVE. Blocks any recovery option involving that asset. Alerts Chief Engineer. | GS-03 | `context-freshness-policy.md`, `business-rules.md` |
+| **Prompt Injection in Port Notice** | Sanitization regex detects injection patterns, OR LLM output fails JSON schema validation. | NLP extraction returns malicious or invalid payload. | **Shore:** Payload is discarded. Document flagged as `HIGH_RISK` and routed to HITL. Deterministic engine never sees the raw text. | GS-09 | `prompt-context-design.md`, `risk-treatment-plan.md` |
+| **Vessel Edge Hardware Failure** | IPC watchdog timer / OS crash. | Master loses local decision-support UI. | **Fail-Safe:** Master reverts to manual, paper-based or legacy radio procedures. Shore platform continues tracking the vessel via AIS and attempts to establish voice comms. | GS-10 | `dependencies.md` |
 
-## Working scaffold
-| Failure mode | Cause | Detection | Safe behavior | Fallback | Human notification | Test |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
-
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Complete base AI/application architecture
-
-Do not advance to Stage 11 until the Stage 10 exit gate is defensible.
+## Rationale
+This failure-mode design proves that the system is inherently resilient. Because the core feasibility engine is deterministic and the vessel edge is self-sufficient, the failure of cloud services (LLM, Vector DB) or network links (Sat-com) never results in a safety

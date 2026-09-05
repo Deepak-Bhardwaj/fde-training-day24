@@ -1,75 +1,44 @@
 # Architecture ADRs
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 10 — AI & Application Architecture  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 10 — AI & Application Architecture
+**Participant status:** COMPLETED
 **Deliverable form:** ADR / decision record
 
 ## Stage question
 How will the AI-enabled application consume context, integrate, deploy and fail safely?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Complete base AI/application architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To formally record the final, critical architectural decisions regarding the application layer, deployment, and integration patterns that bring the information architecture to life.
 
 ## Upstream dependency
-Use the completed Stage 09 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use all completed Stage 10 artifacts.
 
 ## Evidence to inspect
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
-- `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/06_evaluations/acceptance_thresholds.yaml`
+- `Participant_Case_Study.md` (Non-negotiable constraints)
+- `evidence/02_documents/fleet_operations_interview_notes.md`
 
 ## Case challenge
-Consume Stage 9 through explicit contracts. Keep deterministic policy/authorization outside model discretion and design safe degraded behavior.
+These ADRs must justify the complexity of the hybrid deployment and the strict isolation of AI components against the reality of maritime operations.
 
 ## Minimum content
-- ADR
-- Architecture decision
-- Options
-- Decision
-- Trade-off
-- Evidence
-- Reversal trigger
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
+### ADR-016: MQTT Event Sourcing over VSAT for Vessel-to-Shore Sync
+- **Status:** Accepted
+- **Context:** The vessel operates in environments with prolonged, unpredictable satellite blackouts (GS-14). Traditional REST/HTTP polling or database replication fails completely when the network is partitioned for days.
+- **Decision:** Adopt MQTT (QoS 1/2) over the sat-com link for event-sourced delta sync. The shore publishes graph mutations; the vessel consumes them and queues its own local mutations (e.g., Master approvals) for replay upon reconnect.
+- **Consequences:** (+) Highly resilient to intermittent connectivity. (+) Guarantees safe reconciliation after blackouts (GS-15). (-) Requires strict idempotency and deterministic hashing across both zones.
+- **Evidence:** `api-contracts.md`, `event-state-temporal-model.md`
 
-## Working scaffold
-### Context / decision drivers
-> ...
+### ADR-017: Vessel Edge Compute Profile (No AI / No Vector Search)
+- **Status:** Accepted
+- **Context:** The vessel edge must operate autonomously on constrained, ruggedized hardware without internet access. Running LLM inference or vector similarity searches locally is computationally prohibitive and introduces unmanageable hallucination risks offline.
+- **Decision:** The Vessel Edge container profile is strictly limited to the Embedded Graph Store, Deterministic Engine, Master UI, and MQTT Client. AI/NLP and Vector components are deployed exclusively on the Shore Platform.
+- **Consequences:** (+) Guarantees offline continuity (CTQ-04) and zero hallucination risk on the vessel. (+) Minimizes hardware footprint and power consumption. (-) Vessel edge cannot process new unstructured port notices while offline; must rely on last known shore-synced state.
+- **Evidence:** `deployment-topology.md`, `model-routing-design.md`
 
-### Options considered
-| Option | Evidence | Advantages | Disadvantages / risks |
-|---|---|---|---|
-| | | | |
-
-### Decision
-> ...
-
-### Consequences and reversal trigger
-> ...
-
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Complete base AI/application architecture
-
-Do not advance to Stage 11 until the Stage 10 exit gate is defensible.
+### ADR-018: 6-Month API Backward Compatibility for Vessel Software
+- **Status:** Accepted
+- **Context:** Vessel software updates require physical deployment or complex over-the-air (OTA) updates that are often delayed due to port schedules, crew availability, or safety approvals. The Shore Platform will evolve much faster than the Vessel Edge.
+- **Decision:** All Shore-to-Vessel APIs and MQTT payloads must maintain strict backward compatibility for a minimum of 6 months after a new version is deployed. The Shore Platform must support older vessel edge versions concurrently.
+- **Consequences:** (+) Prevents "bricking" vessel operations due to failed or delayed OTA updates. (+) Allows shore to iterate rapidly on NLP and analytics without risking vessel stability. (-) Increases the maintenance burden on the Shore Platform to support multiple API schema

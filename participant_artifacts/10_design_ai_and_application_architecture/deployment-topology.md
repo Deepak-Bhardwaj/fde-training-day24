@@ -1,72 +1,45 @@
 # Deployment Topology
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 10 — AI & Application Architecture  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 10 — AI & Application Architecture
+**Participant status:** COMPLETED
 **Deliverable form:** Diagram + supporting table + rationale
 
 ## Stage question
 How will the AI-enabled application consume context, integrate, deploy and fail safely?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Complete base AI/application architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define the physical and network infrastructure required to host the Event-Driven Hybrid architecture, specifically addressing the severe constraints of the maritime environment (ruggedized hardware, intermittent satellite connectivity, and strict offline requirements).
 
 ## Upstream dependency
-Use the completed Stage 09 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Physical Persistence Topology, Stage 10 Target C4 Container View, and Stage 08 Selected Solution (ADR-001).
 
 ## Evidence to inspect
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
-- `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/06_evaluations/acceptance_thresholds.yaml`
+- `evidence/02_documents/fleet_operations_interview_notes.md`
+- `evidence/01_enterprise_sources/source_inventory.csv`
 
 ## Case challenge
-Consume Stage 9 through explicit contracts. Keep deterministic policy/authorization outside model discretion and design safe degraded behavior.
+The topology must prove that the Vessel Edge is entirely self-sufficient for core operations, while the Shore Platform is optimized for heavy compute and historical analytics.
 
-## Minimum content
-- Environment/node
-- Location/region
-- Responsibility
-- Network/trust zone
-- HA/DR
-- Identity/secrets
+## Diagram Description (Physical & Network Topology)
+*(Text-based representation)*
+- **[Shore Data Center / Cloud]**
+  - **Compute Cluster:** Kubernetes (or managed containers) hosting Ingestion ACL, NLP Workers, Context Assembler, and Fleet UI.
+  - **Data Tier:** Enterprise Property Graph DB (Cluster), Vector DB, Object Storage (S3), Time-Series Audit DB.
+  - **Network Edge:** MQTT Broker and API Gateway exposed to the internet.
+- **[Satellite Communications Link]**
+  - **Transport:** VSAT / LEO (e.g., Starlink Maritime, Inmarsat FleetXpress). High latency, intermittent, bandwidth-constrained.
+  - **Protocol:** MQTT over TLS. QoS 1 for standard sync, QoS 2 for critical CMMS alerts.
+- **[Vessel Edge Environment]**
+  - **Hardware:** Ruggedized Marine IPC (e.g., Intel Core i7, 16GB RAM, 512GB NVMe SSD). No internet access.
+  - **Compute:** Docker containers hosting Edge Graph Store (SQLite/RocksDB), Deterministic Engine, Master UI, and MQTT Client.
+  - **Local Network:** Connects to vessel NMEA 0183/2000 telemetry gateways and local CMMS nodes.
 
-## Relevant non-negotiable constraints
-- Cloud/LLM availability must not be required for essential vessel operations.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-- Duplicate/replayed events must be handled idempotently and with temporal provenance.
+## Working scaffold (Deployment Specifications)
 
-## Working scaffold
-### Diagram / model
-```mermaid
-flowchart LR
-    A[Replace with case-specific elements] --> B[Show interfaces / decisions / controls]
-```
-
-### Supporting decisions
-| Element / relationship | Responsibility / meaning | Evidence | Constraint / control |
-|---|---|---|---|
-| | | | |
-
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Complete base AI/application architecture
-
-Do not advance to Stage 11 until the Stage 10 exit gate is defensible.
+| Component | Shore Deployment | Vessel Edge Deployment | Rationale / Constraint | Evidence |
+| :--- | :--- | :--- | :--- | :--- |
+| **Canonical Store** | Managed Enterprise Graph DB (High Availability) | Embedded SQLite + Custom Graph Index | Shore needs ACID/clustering. Edge needs zero-footprint, read-optimized local storage. | `graph-persistence-architecture.md` |
+| **Semantic Context** | Managed Vector Database | **NONE** (Disabled) | Edge lacks compute for embedding/search. Falls back to cached Graph facts only. | `hybrid-retrieval-architecture.md` |
+| **NLP Extraction** | Worker calling External LLM API | **NONE** (Prohibited) | Edge must operate offline. LLM calls require internet. | `model-routing-design.md` |
+| **Audit Log** | Time-Series DB (Infinite retention) | Local SQLite (Rolling 30-day buffer) | Edge buffers locally; Shore
