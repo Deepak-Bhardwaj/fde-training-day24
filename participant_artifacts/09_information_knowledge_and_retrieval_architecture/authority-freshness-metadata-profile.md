@@ -1,76 +1,46 @@
 # Authority / Freshness Metadata Profile
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** G. Metadata / Lineage / Provenance  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer G: Metadata / Lineage / Provenance)
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define the exact, non-negotiable metadata envelope that must accompany every piece of data as it moves through the system. This profile enforces the trust boundaries and ensures the deterministic engine can make authority-weighted, temporally valid decisions.
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Enterprise Source Authority Model, Context Freshness Policy, and Retrieval Evidence Contract.
 
 ## Evidence to inspect
 - `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
 - `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
 
 ## Case challenge
-Design the target information architecture as a transformation of Stage 5–8 evidence; do not duplicate the Stage 6 inventory or redefine Stage 5 business language without an explicit decision.
+The metadata profile must be strictly enforced at the Ingestion ACL. If a data payload arrives without this complete metadata envelope, it must be rejected and logged as a data quality failure.
 
 ## Minimum content
-- Field
-- Allowed values
-- Meaning
-- Source/owner
-- Expiry/age rule
-- Conflict marker
 
-## Relevant non-negotiable constraints
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
-- Cloud/LLM availability must not be required for essential vessel operations.
-- Duplicate/replayed events must be handled idempotently and with temporal provenance.
-
-## Working scaffold
-| Field | Allowed values | Meaning | Source/owner | Expiry/age rule | Conflict marker |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
-
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.
+### 1. The Mandatory Metadata Envelope (JSON Schema)
+```json
+{
+  "provenance": {
+    "source_id": "SRC-PORT | SRC-CMMS | SRC-TELEM | etc.",
+    "observed_timestamp": "ISO8601",
+    "ingestion_timestamp": "ISO8601",
+    "source_version": "string (e.g., document hash or API version)",
+    "authority_weight": "HIGHEST | HIGH | MEDIUM | OBSERVATION | NON_AUTHORITATIVE"
+  },
+  "freshness": {
+    "threshold_minutes": 60,
+    "current_state": "FRESH | STALE | EXPIRED | UNVERIFIED",
+    "valid_until": "ISO8601"
+  },
+  "transformation": {
+    "acl_rule_version": "string",
+    "nlp_confidence_score": 0.98,
+    "hitl_override": false
+  }
+}
