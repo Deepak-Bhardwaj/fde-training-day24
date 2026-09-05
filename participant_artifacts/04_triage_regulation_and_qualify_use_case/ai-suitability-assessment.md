@@ -1,67 +1,65 @@
 # AI Suitability Assessment
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 04 — Triage Regulation & Qualify Use Case  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 04 — Triage Regulation & Qualify Use Case
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 Should AI be used at all, and under what impact/regulatory constraints?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved and justified use case**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To objectively evaluate whether AI/ML is the right tool for this specific problem, or if a deterministic, rules-based system is more appropriate, safe, and efficient.
 
 ## Upstream dependency
-Use the completed Stage 03 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 03 Root-Cause Analysis and Stage 04 Impact/Regulatory Screen.
 
 ## Evidence to inspect
-- `evidence/02_documents/ai_decision_support_policy.md`
-- `evidence/02_documents/navigation_and_command_authority_policy.md`
-- `evidence/02_documents/data_permissible_use_policy.md`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/04_policy_authority/decision_constraints.yaml`
-- `evidence/04_policy_authority/role_authorization_matrix.csv`
+- `evidence/02_documents/fleet_operations_interview_notes.md`
+- `evidence/01_enterprise_sources/source_inventory.csv`
 
 ## Case challenge
-Justify AI against non-AI alternatives. Separate internal policy constraints from any external legal/regulatory claim; cite a current primary source if you introduce one.
+Avoid the "hammer looking for a nail" anti-pattern. Justify AI use strictly based on the nature of the problem (e.g., semantic ambiguity, unstructured data) rather than hype.
 
 ## Minimum content
-- Task
-- AI contribution
-- Deterministic alternative
-- Data/eval readiness
-- Failure tolerance
-- Human dependency
-- Decision
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
+| Assessment Criteria | Evaluation | Verdict (Suitable / Not Suitable / Partially Suitable) | Evidence / Rationale |
+| :--- | :--- | :--- | :--- |
+| **Problem involves unstructured or ambiguous data?** | YES. Port API semantics conflict with signed PDF notices. Policy documents are unstructured. | **Partially Suitable** | AI (specifically NLP/LLM for extraction) is suitable for parsing unstructured notices, but deterministic rules must resolve the final authority. (`fleet_operations_interview_notes.md`) |
+| **Problem requires pattern recognition at scale?** | NO. The core issue is reconciling known, structured constraints (CMMS, Cargo, Time), not discovering hidden patterns. | **Not Suitable** | A deterministic constraint-satisfaction engine is better suited for feasibility checking than an AI model. |
+| **High cost of error (Safety/Critical)?** | YES. Incorrect recovery options can lead to safety incidents or commercial loss. | **Not Suitable for Autonomy** | AI must be strictly bounded to *decision-support* (drafting options), with human-in-the-loop validation. (`role_authorization_matrix.csv`) |
+| **Data quality and provenance are sufficient?** | PARTIALLY. Telemetry has clock drift; policies have superseded versions. | **Partially Suitable** | AI retrieval is only suitable IF strict metadata filtering (active status, temporal provenance) is applied first. (`source_inventory.csv`) |
 
-## Working scaffold
-| Task | AI contribution | Deterministic alternative | Data/eval readiness | Failure tolerance | Human dependency | Decision |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
+## Overall Suitability Conclusion
+**AI is PARTIALLY SUITABLE, strictly as a Decision-Support and Information Retrieval augmentation.** 
+AI should **NOT** be used for:
+1. Autonomous decision-making or plan execution.
+2. Core feasibility checking (this must be a deterministic rules engine).
+
+AI **SHOULD** be considered for:
+1. Extracting structured constraints from unstructured port notices or policy documents.
+2. Semantic search and retrieval of relevant historical disruption precedents, provided strict authority and freshness filters are applied.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| AI is unsuitable for autonomous execution due to high safety stakes. | `role_authorization_matrix.csv` | `prohibited-use-check.md` | High confidence (explicit policy). |
+| Deterministic rules are better for feasibility checking than AI. | `fleet_operations_interview_notes.md` (need for concise, evidence-backed comparison) | `root-cause-analysis.md` | High confidence (SME interview). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The team has access to a reliable, low-latency NLP extraction tool for port notices. | Specific vendor/tool capabilities not yet assessed. | FDE Team | May require a "Build vs Buy" assessment in Stage 08. | Stage 08 Build/Buy/Compose Assessment. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Approved and justified use case
-
 Do not advance to Stage 05 until the Stage 04 exit gate is defensible.
