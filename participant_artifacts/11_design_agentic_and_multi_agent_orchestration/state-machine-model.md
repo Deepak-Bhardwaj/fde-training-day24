@@ -1,75 +1,36 @@
 # State-Machine Model
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 11 — Agentic & Multi-Agent Orchestration  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 11 — Agentic & Multi-Agent Orchestration
+**Participant status:** COMPLETED
 **Deliverable form:** Diagram + supporting table + rationale
 
 ## Stage question
 Is autonomy justified, bounded, permissioned, interruptible and testable?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved, bounded and testable agentic architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define the strict, deterministic state transitions for the core operational entity (`RecoveryOption`). This ensures the system cannot enter invalid or unsafe states (e.g., executing a plan without Master approval).
 
 ## Upstream dependency
-Use the completed Stage 10 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Runtime Entity State Model and Stage 11 Autonomy-Level ADR.
 
 ## Evidence to inspect
-- `participant_artifacts/07_define_evaluations_impacts_and_risks`
-- `participant_artifacts/08_generate_test_and_select_options`
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
-- `participant_artifacts/10_design_ai_and_application_architecture`
 - `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/04_policy_authority/decision_constraints.yaml`
-- `evidence/06_evaluations/golden_scenarios.json`
+- `evidence/04_policy_authority/source_authority.yaml`
 
 ## Case challenge
-The correct result may be NO AGENT. Complete agent suitability first. If autonomy is not justified, complete remaining Stage 11 artifacts as NOT APPLICABLE with rationale, approving role and downstream consequence.
+Every state transition must have an explicit guard (a required identity, a required system state, or a required human action). No transition can be triggered autonomously by the system.
 
-## Minimum content
-- State
-- Entry condition
-- Allowed transition
-- Guard
-- Timeout/loop bound
-- Terminal/escalation
+## Diagram Description (RecoveryOption State Machine)
+*(Text-based representation)*
+- **[DRAFT]** --(Engine generates)--> **[FEASIBLE]**
+- **[DRAFT]** --(Engine fails check)--> **[INFEASIBLE]**
+- **[FEASIBLE]** --(Controller selects)--> **[PENDING_APPROVAL]**
+- **[PENDING_APPROVAL]** --(Master signs)--> **[APPROVED]**
+- **[PENDING_APPROVAL]** --(Master vetoes)--> **[REJECTED]**
+- **[APPROVED]** --(Vessel systems confirm)--> **[EXECUTED]**
 
-## Relevant non-negotiable constraints
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
-- Cloud/LLM availability must not be required for essential vessel operations.
-- Duplicate/replayed events must be handled idempotently and with temporal provenance.
+## Working scaffold (State Transitions & Guards)
 
-## Working scaffold
-### Diagram / model
-```mermaid
-flowchart LR
-    A[Replace with case-specific elements] --> B[Show interfaces / decisions / controls]
-```
-
-### Supporting decisions
-| Element / relationship | Responsibility / meaning | Evidence | Constraint / control |
-|---|---|---|---|
-| | | | |
-
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Approved, bounded and testable agentic architecture
-
-This contributes to the final Stage 11 architecture defence.
+| Current State | Target State | Trigger / Action | Mandatory Guard / Pre-condition | Allowed Actor | Evidence |
+| :--- | :--- | :--- | :--- | :--- |

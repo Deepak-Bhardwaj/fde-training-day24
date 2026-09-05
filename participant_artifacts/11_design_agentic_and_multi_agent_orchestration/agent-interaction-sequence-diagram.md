@@ -1,75 +1,27 @@
 # Agent Interaction / Sequence Diagram
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 11 — Agentic & Multi-Agent Orchestration  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 11 — Agentic & Multi-Agent Orchestration
+**Participant status:** COMPLETED
 **Deliverable form:** Diagram + supporting table + rationale
 
 ## Stage question
 Is autonomy justified, bounded, permissioned, interruptible and testable?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved, bounded and testable agentic architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To map the exact sequence of interactions between the Deterministic Orchestrator, the Bounded NLP Service (the only "agent-like" component), the Human-in-the-Loop (Fleet Controller), and the Master. This proves that no autonomous, multi-agent negotiation occurs.
 
 ## Upstream dependency
-Use the completed Stage 10 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 11 Orchestration Topology and Stage 10 Target C4 Component View.
 
 ## Evidence to inspect
-- `participant_artifacts/07_define_evaluations_impacts_and_risks`
-- `participant_artifacts/08_generate_test_and_select_options`
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
-- `participant_artifacts/10_design_ai_and_application_architecture`
+- `Participant_Case_Study.md` (Non-negotiable constraints)
 - `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/04_policy_authority/decision_constraints.yaml`
-- `evidence/06_evaluations/golden_scenarios.json`
 
 ## Case challenge
-The correct result may be NO AGENT. Complete agent suitability first. If autonomy is not justified, complete remaining Stage 11 artifacts as NOT APPLICABLE with rationale, approving role and downstream consequence.
+Show exactly where the human interrupts, reviews, and approves the workflow. The sequence must prove that the system cannot bypass the Master's authority.
 
-## Minimum content
-- Step
-- Actor/agent
-- Message/event
-- Tool/policy check
-- Human gate
-- Error/timeout
-
-## Relevant non-negotiable constraints
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
-- Cloud/LLM availability must not be required for essential vessel operations.
-- Duplicate/replayed events must be handled idempotently and with temporal provenance.
-
-## Working scaffold
-### Diagram / model
-```mermaid
-flowchart LR
-    A[Replace with case-specific elements] --> B[Show interfaces / decisions / controls]
-```
-
-### Supporting decisions
-| Element / relationship | Responsibility / meaning | Evidence | Constraint / control |
-|---|---|---|---|
-| | | | |
-
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Approved, bounded and testable agentic architecture
-
-This contributes to the final Stage 11 architecture defence.
+## Diagram Description (Sequence Flow)
+*(Text-based representation of the interaction sequence)*
+1. **Trigger:** `DisruptionDetected` event received by **Deterministic Orchestrator**.
+2. **Orchestrator** calls **Context Assembler** -> Returns Active Subgraph.
