@@ -1,22 +1,48 @@
 {
-  "artifact": "Vector Schema",
+  "vector_schema_version": "1.0.0",
   "case": "Fleet Disruption & Voyage Recovery Intelligence Workbench",
-  "stage": 9,
-  "status": "TO_COMPLETE",
-  "participant_note": "Replace the empty arrays/objects with the case-specific design; keep authority, time, provenance and scope fields where applicable.",
-  "vector_schema": {
-    "collections": [],
-    "chunk_schema": {
-      "id": "",
-      "text": "",
-      "source_id": "",
-      "document_version": "",
-      "authority": "",
-      "as_of": "",
-      "access_scope": []
+  "stage": "09 — Information, Knowledge & Retrieval Architecture",
+  "description": "Schema for the Vector Store, defining collections, embedding dimensions, and metadata filters for semantic retrieval.",
+  "collections": [
+    {
+      "name": "historical_precedents",
+      "description": "Embeddings of past RecoveryOption nodes for historical learning.",
+      "embedding_model": "text-embedding-3-small (or equivalent)",
+      "dimensions": 1536,
+      "metadata_filters": [
+        { "key": "vessel_type", "type": "string" },
+        { "key": "disruption_type", "type": "string" },
+        { "key": "outcome_status", "type": "string" },
+        { "key": "graph_node_id", "type": "string", "description": "Link back to Property Graph RecoveryOption node" }
+      ]
     },
-    "metadata_filters": [],
-    "embedding_versioning": {},
-    "retention": {}
+    {
+      "name": "policy_text_archive",
+      "description": "Embeddings of Fleet Policy documents. Includes both ACTIVE and SUPERSEDED for audit/search.",
+      "embedding_model": "text-embedding-3-small (or equivalent)",
+      "dimensions": 1536,
+      "metadata_filters": [
+        { "key": "policy_id", "type": "string" },
+        { "key": "version", "type": "integer" },
+        { "key": "status", "type": "string", "enum": ["ACTIVE", "SUPERSEDED"] },
+        { "key": "category", "type": "string" }
+      ]
+    },
+    {
+      "name": "port_notice_context",
+      "description": "Embeddings of raw text from Port Notice PDFs for semantic context.",
+      "embedding_model": "text-embedding-3-small (or equivalent)",
+      "dimensions": 1536,
+      "metadata_filters": [
+        { "key": "port_id", "type": "string" },
+        { "key": "document_hash", "type": "string" },
+        { "key": "nlp_confidence", "type": "float" }
+      ]
+    }
+  ],
+  "retrieval_rules": {
+    "default_top_k": 5,
+    "minimum_similarity_threshold": 0.85,
+    "strict_filter_requirement": "Queries for policy_text_archive MUST include filter status = 'ACTIVE' unless explicitly requesting audit history."
   }
 }

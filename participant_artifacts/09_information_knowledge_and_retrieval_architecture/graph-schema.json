@@ -1,19 +1,59 @@
 {
-  "artifact": "Graph Schema",
+  "graph_schema_version": "1.0.0",
   "case": "Fleet Disruption & Voyage Recovery Intelligence Workbench",
-  "stage": 9,
-  "status": "TO_COMPLETE",
-  "participant_note": "Replace the empty arrays/objects with the case-specific design; keep authority, time, provenance and scope fields where applicable.",
-  "graph_schema": {
-    "node_types": [],
-    "edge_types": [],
-    "required_temporal_fields": [
-      "event_time",
-      "update_time",
-      "ingestion_time"
-    ],
-    "provenance_fields": [],
-    "constraints": [],
-    "indexes": []
-  }
+  "stage": "09 — Information, Knowledge & Retrieval Architecture",
+  "description": "Physical implementation schema for the Property Graph database, defining node constraints, edge properties, and indexes.",
+  "node_constraints": [
+    {
+      "label": "Vessel",
+      "mandatory_properties": ["canonical_id", "imo_number"],
+      "uniqueness_constraints": ["canonical_id"],
+      "indexes": ["imo_number"]
+    },
+    {
+      "label": "Constraint",
+      "mandatory_properties": ["constraint_id", "type", "status", "authority_weight"],
+      "uniqueness_constraints": ["constraint_id"],
+      "indexes": ["type", "status"]
+    },
+    {
+      "label": "PolicyRule",
+      "mandatory_properties": ["rule_id", "version", "status"],
+      "uniqueness_constraints": ["rule_id", "version"],
+      "indexes": ["status"]
+    },
+    {
+      "label": "EvidenceRecord",
+      "mandatory_properties": ["record_id", "raw_payload_hash", "ingestion_ts"],
+      "uniqueness_constraints": ["record_id"],
+      "indexes": ["raw_payload_hash"]
+    }
+  ],
+  "edge_definitions": [
+    {
+      "type": "CONSTRAINED_BY",
+      "start_node": ["Voyage", "RecoveryOption"],
+      "end_node": "Constraint",
+      "mandatory_properties": ["authority_weight", "valid_until"],
+      "composite_indexes": [["valid_until", "authority_weight"]]
+    },
+    {
+      "type": "DERIVED_FROM",
+      "start_node": ["Constraint", "PolicyRule"],
+      "end_node": "EvidenceRecord",
+      "mandatory_properties": ["extraction_confidence"]
+    }
+  ],
+  "database_triggers": [
+    {
+      "name": "Temporal Expiration Check",
+      "schedule": "Every 60 seconds",
+      "action": "Update Constraint.status to 'EXPIRED' if current_time > MAX(valid_until) on incoming CONSTRAINED_BY edges."
+    },
+    {
+      "name": "Authority Write Guard",
+      "schedule": "On Write",
+      "action": "Reject write to Constraint node if incoming authority_weight < existing node authority_weight (enforces SC-01)."
+    }
+  ]
 }

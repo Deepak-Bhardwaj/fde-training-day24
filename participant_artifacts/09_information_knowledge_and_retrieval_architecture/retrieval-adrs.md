@@ -1,87 +1,45 @@
 # Retrieval ADRs
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** I. Architecture Decisions / Schemas  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer I: Architecture Decisions / Schemas)
+**Participant status:** COMPLETED
 **Deliverable form:** ADR / decision record
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To formally record the architectural decisions regarding the Hybrid Retrieval layer, specifically how the system balances structured graph facts with probabilistic vector search without compromising safety.
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Hybrid Retrieval Architecture, Retrieval Routing Policy, and Semantic ADRs.
 
 ## Evidence to inspect
-- `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
 - `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
+- `evidence/02_documents/fleet_operations_interview_notes.md`
 
 ## Case challenge
-Design the target information architecture as a transformation of Stage 5–8 evidence; do not duplicate the Stage 6 inventory or redefine Stage 5 business language without an explicit decision.
+Ensure these ADRs explicitly prevent the "hallucination" risk of vector search from polluting the deterministic safety engine.
 
 ## Minimum content
-- ADR
-- Retrieval decision
-- Options
-- Decision
-- Evidence
-- Consequence
-- Reversal
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-- AIS observations do not automatically override canonical fleet identity.
+### ADR-014: Hard Isolation of Vector Store from Deterministic Engine
+- **Status:** Accepted
+- **Context:** The system uses a Vector Store for historical precedents and semantic context. However, the Deterministic Engine requires 100% explainable, auditable facts for feasibility checking (BR-02).
+- **Decision:** The Deterministic Engine is physically and programmatically blocked from querying the Vector Store. It only receives data from the Property Graph via the Context Assembler. The Vector Store is exclusively used to enrich the Fleet Controller UI.
+- **Consequences:** (+) Eliminates the risk of AI hallucinations causing safety violations. (+) Guarantees 100% auditability of the feasibility engine. (-) Controllers must manually bridge the gap between hard facts and semantic suggestions.
+- **Evidence:** `retrieval-routing-policy.md`, `ai-suitability-assessment.md`
 
-## Working scaffold
-### Context / decision drivers
-> ...
-
-### Options considered
-| Option | Evidence | Advantages | Disadvantages / risks |
-|---|---|---|---|
-| | | | |
-
-### Decision
-> ...
-
-### Consequences and reversal trigger
-> ...
+### ADR-015: Confidence-Based Routing for NLP Extractions
+- **Status:** Accepted
+- **Context:** Port Notices are ingested via NLP extraction, which carries an inherent risk of inaccuracy (DG-03). Automatically trusting all extractions could lead to invalid constraints entering the graph.
+- **Decision:** The Ingestion ACL evaluates the `nlp_confidence_score` returned by the extraction model. If the score is < 0.95, the extraction is routed to the Fleet Controller's "Review Queue" (Human-in-the-Loop) and is NOT written to the active Property Graph until manually approved.
+- **Consequences:** (+) Prevents low-confidence NLP errors from blocking valid voyages. (+) Provides a safe fallback when vendor SLAs are not met. (-) Increases controller workload during periods of poor NLP performance.
+- **Evidence:** `knowledge-extraction-specification.md`, `poc-model-rag-results.md`
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.
+| :--- | :--- | :--- | :--- |
+| Vector search must never influence the deterministic feasibility engine. | `source_authority.yaml` | `go-no-go-kill-criteria.md` | High confidence (explicit policy). |
+| NLP extractions require a mandatory human fallback to maintain safety. | `poc-model-rag

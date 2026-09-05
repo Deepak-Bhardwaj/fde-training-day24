@@ -1,18 +1,64 @@
 {
-  "artifact": "Ontology Schema",
+  "ontology_schema_version": "1.0.0",
   "case": "Fleet Disruption & Voyage Recovery Intelligence Workbench",
-  "stage": 9,
-  "status": "TO_COMPLETE",
-  "participant_note": "Replace the empty arrays/objects with the case-specific design; keep authority, time, provenance and scope fields where applicable.",
-  "ontology": {
-    "classes": [],
-    "relationships": [],
-    "taxonomies": [],
-    "constraints": [],
-    "provenance_model": {
-      "source_field": "",
-      "authority_field": "",
-      "version_field": ""
+  "stage": "09 — Information, Knowledge & Retrieval Architecture",
+  "description": "Formal definition of the core business concepts, their hierarchical relationships, and the semantic rules governing their interaction.",
+  "nodes": [
+    {
+      "label": "Vessel",
+      "description": "A physical ship operating under MeridianBlue management.",
+      "core_attributes": ["canonical_id", "imo_number", "name"]
+    },
+    {
+      "label": "Voyage",
+      "description": "A scheduled commercial journey between ports.",
+      "core_attributes": ["voyage_id", "origin", "destination", "schedule_status"]
+    },
+    {
+      "label": "Constraint",
+      "description": "A limitation or requirement affecting a voyage (Port, CMMS, Cargo, Weather).",
+      "core_attributes": ["constraint_id", "type", "status", "authority_weight"]
+    },
+    {
+      "label": "PolicyRule",
+      "description": "A governance rule extracted from the Fleet Policy Repository.",
+      "core_attributes": ["rule_id", "text", "version", "status"]
+    },
+    {
+      "label": "RecoveryOption",
+      "description": "A proposed course of action to mitigate a disruption.",
+      "core_attributes": ["option_id", "feasibility_score", "ai_draft_flag", "status"]
     }
+  ],
+  "relationships": [
+    {
+      "type": "OPERATES_ON",
+      "start_node": "Vessel",
+      "end_node": "Voyage",
+      "description": "Links a vessel to its current or historical voyages."
+    },
+    {
+      "type": "CONSTRAINED_BY",
+      "start_node": "Voyage | RecoveryOption",
+      "end_node": "Constraint",
+      "description": "Links a voyage or option to the constraints it must satisfy.",
+      "edge_properties": ["authority_weight", "valid_until", "source_version"]
+    },
+    {
+      "type": "GOVERNS",
+      "start_node": "PolicyRule",
+      "end_node": "RecoveryOption",
+      "description": "Links a policy rule to the options it governs."
+    },
+    {
+      "type": "APPROVES",
+      "start_node": "Master",
+      "end_node": "RecoveryOption",
+      "description": "Links the Master to the option they have explicitly authorized."
+    }
+  ],
+  "semantic_hierarchies": {
+    "constraint_authority": ["Technical Hold (CMMS)", "Safety Rule (Policy)", "Port Constraint (Signed)", "Cargo Window", "Port Constraint (API)"],
+    "identity_precedence": ["Fleet Registry (SRC-FMS)", "AIS Observation (SRC-AIS)"]
   }
 }
