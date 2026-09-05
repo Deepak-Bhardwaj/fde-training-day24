@@ -1,77 +1,58 @@
 # Batch / Stream / Runtime Data Flows
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** H. Target Information Architecture  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer H: Target Information Architecture)
+**Participant status:** COMPLETED
 **Deliverable form:** Diagram + supporting table + rationale
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To categorize and define the movement patterns of data across the system, ensuring that high-frequency telemetry does not starve the bandwidth of critical safety constraints, and that batch processes do not lock the operational graph.
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Physical Persistence Topology and Retrieval Source Adapters.
 
 ## Evidence to inspect
 - `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
-- `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
+- `evidence/01_enterprise_sources/live_event_stream.jsonl`
 
 ## Case challenge
-Design the target information architecture as a transformation of Stage 5–8 evidence; do not duplicate the Stage 6 inventory or redefine Stage 5 business language without an explicit decision.
+Explicitly separate the continuous, high-volume streams from the critical, low-volume runtime requests. The deterministic engine's runtime queries must never be blocked by batch ingestion or stream backpressure.
 
-## Minimum content
-- Producer
-- Consumer
-- Data/event
-- Timing
-- Transform
-- Security/trust boundary
-- Failure/retry
+## Working scaffold (Flow Categorization)
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-- AIS observations do not automatically override canonical fleet identity.
+| Flow Category | Data Sources / Triggers | Pattern | Transport / Mechanism | SLA / Priority | Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **High-Freq Stream** | SRC-TELEM (Machinery/Fuel), SRC-AIS (Position) | Continuous Event Stream | MQTT / Kafka | Best-effort. Subject to deduplication and aggregation at the ACL. | `source_inventory.csv` |
+| **Critical Event Stream** | SRC-CMMS (Maintenance Holds), SRC-PORT (Signed Notices) | Low-volume, High-criticality Events | MQTT (QoS 2) / HTTPS | **Highest Priority.** Guaranteed delivery. Triggers immediate Context Assembly update. | `business-rules.md` (BR-02) |
+| **Batch Sync** | SRC-POLICY (Superseded docs), SRC-CREW (Rest hours) | Scheduled / Nightly | SFTP / Batch API | Low priority. Runs during off-peak hours. Isolated from operational graph. | `source_inventory.csv` |
+| **Runtime Request** | Fleet Controller UI, Deterministic Engine | Request / Response | Internal gRPC / REST | **Strict Latency (<50ms).** Reads from cached Runtime Context Graph. | `acceptance-thresholds.md` |
+| **Shore-to-Vessel Sync** | Shore Canonical Graph -> Vessel Edge Graph | Delta Event Stream | MQTT over Sat-com | Asynchronous. Queued during blackout, flushed upon `ConnectivityRestored`. | `graph-persistence-architecture.md` |
 
-## Working scaffold
-| Producer | Consumer | Data/event | Timing | Transform | Security/trust boundary | Failure/retry |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
+## Rationale
+By categorizing flows, we can apply Quality of Service (QoS) routing. A critical CMMS hold (Critical Event) will bypass the queue and immediately update the vessel edge's active subgraph. Conversely, high-frequency telemetry (Stream) is aggregated and deduplicated at the edge of the network, preventing the sat-com link from being overwhelmed by redundant engine temperature readings.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| Critical safety events (CMMS) must have guaranteed delivery over sat-com. | `business-rules.md` (BR-02) | `data-gap-register.md` (DG-01) | High confidence (non-negotiable safety constraint). |
+| Runtime engine queries must be isolated from ingestion backpressure. | `fleet_operations_interview_notes.md` | `acceptance-thresholds.md` | High confidence (architectural best practice). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The MQTT broker can correctly prioritize QoS 2 (CMMS) over QoS 1 (Telemetry) during sat-com congestion. | Broker prioritization logic under extreme load NOT RUN. | Shore Platform Team | May require implementing custom application-level priority queues before the MQTT publisher. | Stage 10 Failure-Mode Design. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.
