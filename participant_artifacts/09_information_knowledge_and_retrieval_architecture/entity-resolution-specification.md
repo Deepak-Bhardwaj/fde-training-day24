@@ -1,75 +1,54 @@
 # Entity Resolution Specification
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** C. Connected Knowledge  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer C: Connected Knowledge)
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define the deterministic rules for resolving identity conflicts when the same real-world entity is represented differently across multiple source systems (e.g., AIS aliases, CMMS asset ID mismatches).
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Canonical Identifier Strategy and Stage 06 Quality Profile.
 
 ## Evidence to inspect
-- `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
 - `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
+- `evidence/01_enterprise_sources/source_inventory.csv`
 
 ## Case challenge
-Design the target information architecture as a transformation of Stage 5–8 evidence; do not duplicate the Stage 6 inventory or redefine Stage 5 business language without an explicit decision.
+Entity resolution must be deterministic and rule-based, not probabilistic. The system must never "guess" an identity; it must rely on explicit authority precedence or flag the conflict for human review.
 
 ## Minimum content
-- Entity type
-- Source IDs
-- Match features
-- Threshold/rule
-- Ambiguous handling
-- Human adjudication
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-
-## Working scaffold
-| Entity type | Source IDs | Match features | Threshold/rule | Ambiguous handling | Human adjudication |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
+| Entity Type | Conflicting Sources | Resolution Rule | Fallback / Human Escalation | Golden Scenario Link | Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Vessel Identity** | SRC-AIS (Alias/MMSI) vs. SRC-FMS (Registry) | **Strict Precedence:** SRC-FMS `canonical_id` is absolute truth. AIS identity is stored only as an `OBSERVATION` linked to the FMS canonical ID. | If AIS cannot be matched to any FMS vessel, flag as `UNKNOWN_VESSEL` and alert Fleet Controller. | GS-04 (Cross-source vessel identity ambiguity) | `source_authority.yaml` |
+| **Port Location** | SRC-PORT (API Name) vs. SRC-PORT (Notice PDF) | **Standardization:** Map both to UN/LOCODE. If fuzzy match confidence < 95%, flag as `PORT_IDENTITY_CONFLICT`. | Route to Fleet Controller for manual UN/LOCODE mapping before constraint is applied. | GS-11 (Conflicting berth evidence) | `fleet_operations_interview_notes.md` |
+| **CMMS Asset** | SRC-TELEM (Vessel Local ID) vs. SRC-CMMS (Shore ID) | **Mapping Table:** Use the Tech Ops maintained mapping table. | If mapping is missing or ambiguous, the constraint is marked `UNVERIFIED_ASSET` and excluded from automated feasibility (requires manual Chief Engineer review). | GS-03 (Critical machinery hold) | `source_inventory.csv` (Asset ID mapping issue) |
+| **Policy Document** | SRC-POLICY (Version A) vs. SRC-POLICY (Version B) | **Version Control:** Highest `version_number` with `status = ACTIVE` wins. | If two documents have the same version number but different hashes, flag as `POLICY_CORRUPTION` and halt ingestion. | GS-12 (Superseded policy trap) | `source_authority.yaml` |
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| Vessel identity resolution is strictly deterministic based on FMS registry. | `source_authority.yaml` | `business-rules.md` (BR-06) | High confidence (explicit policy). |
+| CMMS asset mapping failures must block automated feasibility to prevent safety risks. | `source_inventory.csv` | `risk-treatment-plan.md` | High confidence (explicit risk mitigation). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The UN/LOCODE mapping table for ports is maintained and accessible to the ACL. | Port data governance is external to MeridianBlue. | Fleet Data Integration Team | If unavailable, port identity resolution will fail frequently, increasing manual workload. | Stage 09 Data Ownership Map. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.

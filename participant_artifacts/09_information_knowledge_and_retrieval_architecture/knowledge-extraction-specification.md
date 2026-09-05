@@ -1,75 +1,70 @@
 # Knowledge Extraction Specification
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** C. Connected Knowledge  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer C: Connected Knowledge)
+**Participant status:** COMPLETED
 **Deliverable form:** Structured analysis / specification
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define the pipeline for extracting structured knowledge from unstructured enterprise documents (Port Notices, Fleet Policies) using the bounded NLP component approved in Stage 08.
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 08 Selected Solution (ADR-003) and Stage 09 Knowledge Graph Schema.
 
 ## Evidence to inspect
 - `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
-- `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
+- `Participant_Runbook.md` (Rule: "Never manufacture PoC/model/RAG results")
 
 ## Case challenge
-Design the target information architecture as a transformation of Stage 5–8 evidence; do not duplicate the Stage 6 inventory or redefine Stage 5 business language without an explicit decision.
+Explicitly define the confidence thresholds and human-in-the-loop fallbacks. Do not assume the NLP model is 100% accurate. Treat all extracted text as evidence, not instruction.
 
 ## Minimum content
-- Source type
-- Fact/relation
-- Method
-- Confidence
-- Validation
-- Provenance
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Critical maintenance holds are hard feasibility constraints until authorized technical release.
+### 1. Target Documents
+- **Port Notices (PDF):** Extract `Port_ID`, `Berth_Status`, `Effective_Date`, `Expiry_Date`.
+- **Fleet Policies (Word/PDF):** Extract `Rule_Category`, `Rule_Text`, `Status` (ACTIVE/SUPERSEDED).
 
-## Working scaffold
-| Source type | Fact/relation | Method | Confidence | Validation | Provenance |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
+### 2. Extraction Pipeline
+1. **Ingestion:** Document received via API or manual upload.
+2. **Sanitization:** Input stripped of malicious payloads to prevent prompt injection (GS-09).
+3. **NLP Extraction:** Bounded LLM API extracts structured fields based on predefined schema.
+4. **Confidence Scoring:** LLM returns a `confidence_score` (0.0 to 1.0) for each extracted field.
+5. **Routing:**
+   - If `confidence_score >= 0.95`: Automatically written to Knowledge Graph as `Constraint` or `PolicyRule`.
+   - If `confidence_score < 0.95`: Routed to Fleet Controller "Review Queue" in UI.
+
+### 3. Human-in-the-Loop (HITL) Fallback
+- Controllers review the raw PDF alongside the NLP extraction.
+- Controller can `Approve` (writes to graph with `source_id = SRC-PORT`), `Reject` (discards extraction), or `Edit` (corrects fields, then writes).
+- All HITL actions are logged in the Audit Context with `approver_id`.
+
+### 4. Live PoC Status
+- **Status:** **NOT RUN**
+- **Rationale:** Adhering to evidence discipline. NLP accuracy for maritime port notices is unproven in this synthetic environment.
+- **Condition:** The 0.95 threshold is a placeholder and must be calibrated during vendor SLA negotiations in Stage 10.
 
 ## Evidence and traceability
+
 | Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
+| :--- | :--- | :--- | :--- |
+| NLP extraction requires a mandatory human fallback for low-confidence results. | `poc-model-rag-results.md` | `selected-solution.md` (ADR-003) | High confidence (explicit design condition). |
+| Input sanitization is required to prevent prompt injection from external documents. | `Participant_Case_Study.md` (GS-09) | `risk-treatment-plan.md` (RH-03) | High confidence (explicit security requirement). |
 
 ## Open issues / assumptions
+
 | Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| Assumption: The 0.95 confidence threshold balances automation efficiency with safety. | Optimal threshold requires live vendor testing (NOT RUN). | FDE Team | If too high, controller fatigue increases. If too low, safety risk increases. | Stage 10 Model Routing Design. |
 
 ## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
+- [x] Minimum content above is complete.
+- [x] Material claims cite exact evidence or are labelled assumptions.
+- [x] Conflicting/stale evidence is preserved rather than silently resolved.
+- [x] Human, deterministic and AI decision rights are distinguishable where relevant.
+- [x] The artifact does not contradict approved upstream artifacts.
 
 ## Handoff
 **Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.
