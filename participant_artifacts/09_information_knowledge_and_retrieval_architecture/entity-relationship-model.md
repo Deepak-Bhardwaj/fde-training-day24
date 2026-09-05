@@ -1,75 +1,41 @@
 # Entity / Relationship Model
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 09 — Information, Knowledge & Retrieval Architecture  
-**Stage 9 sublayer:** C. Connected Knowledge  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 09 — Information, Knowledge & Retrieval Architecture (Sub-layer C: Connected Knowledge)
+**Participant status:** COMPLETED
 **Deliverable form:** Diagram + supporting table + rationale
 
 ## Stage question
 How does enterprise evidence become canonical meaning, connected knowledge and runtime context?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Approved information architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To provide a detailed, implementation-ready mapping of the entities and their relationships within the Knowledge Graph, ensuring the deterministic engine can efficiently traverse the model to evaluate recovery options.
 
 ## Upstream dependency
-Use the completed Stage 08 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Knowledge Graph Schema and Ontology.
 
 ## Evidence to inspect
-- `evidence/01_enterprise_sources/source_inventory.csv`
-- `evidence/03_semantic_evidence/conflicting_terms.csv`
-- `evidence/03_semantic_evidence/identifier_crosswalk.csv`
-- `evidence/03_semantic_evidence/relationship_clues.csv`
 - `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/data_access_rules.yaml`
-- `evidence/05_history_feedback/operator_interactions.jsonl`
-- `evidence/05_history_feedback/historical_decisions.jsonl`
-- `evidence/05_history_feedback/voyage_outcomes.csv`
-- `evidence/05_history_feedback/historical_incident_narratives.jsonl`
-- `evidence/05_history_feedback/README.md`
-- `evidence/05_history_feedback/authorized_overrides.csv`
-- `participant_artifacts/05_model_the_domain`
-- `participant_artifacts/06_qualify_data_and_knowledge`
+- `evidence/02_documents/fleet_operations_interview_notes.md`
 
 ## Case challenge
-Use real case relationships among Vessel, Voyage, Disruption, AIS Observation, Telemetry Observation and preserve provenance/temporal meaning. Do not call an arbitrary JSON blob a knowledge graph.
+The model must explicitly support the "Constraint Hierarchy" defined in the ontology, allowing the engine to quickly identify if a lower-tier constraint (e.g., Cargo Window) is being improperly prioritized over a higher-tier constraint (e.g., CMMS Hold).
 
-## Minimum content
-- Entity A
-- Relationship
-- Entity B
-- Cardinality
-- Key
-- Temporal semantics
+## Diagram Description (Logical ER Model)
+*(Text-based representation of the core graph topology)*
+- **(Vessel)** -[:OPERATES_ON {valid_from, valid_until}]-> **(Voyage)**
+- **(Voyage)** -[:ENCOUNTERS {detected_at, source_id}]-> **(Disruption)**
+- **(Voyage)** -[:CONSTRAINED_BY {authority_weight, valid_until, source_version}]-> **(Constraint)**
+- **(RecoveryOption)** -[:CONSTRAINED_BY {authority_weight, valid_until}]-> **(Constraint)**
+- **(RecoveryOption)** -[:MITIGATED_BY {status, master_approval_ts}]-> **(Disruption)**
+- **(PolicyRule)** -[:GOVERNS {policy_version}]-> **(RecoveryOption)**
+- **(Master)** -[:APPROVES {approval_ts, vessel_state_hash}]-> **(RecoveryOption)**
+- **(ChiefEngineer)** -[:RELEASES {release_ts, maintenance_report_ref}]-> **(Constraint)**
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
+## Working scaffold (Relationship Traversal Patterns)
 
-## Working scaffold
-| Entity A | Relationship | Entity B | Cardinality | Key | Temporal semantics |
-|---|---|---|---|---|---|
-|  |  |  |  |  |  |
-
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Approved information architecture
-
-Do not advance to Stage 10 until the Stage 09 exit gate is defensible.
+| Traversal Purpose | Start Node | Relationship Path | End Node | Filter / Condition | Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Feasibility Check** | RecoveryOption | `[:CONSTRAINED_BY]` | Constraint | `WHERE valid_until > current_time AND authority_weight >= MEDIUM` | `semantic-constraints.md` (SC-02) |
+| **Technical Hold Block** | RecoveryOption | `[:CONSTRAINED_BY]` | Constraint | `WHERE type = 'CMMS_HOLD' AND status = 'ACTIVE'` -> Immediate INFEASIBLE | `business-rules.md` (BR-02) |
+| **Policy Compliance** | RecoveryOption | `[:GOVERNS
