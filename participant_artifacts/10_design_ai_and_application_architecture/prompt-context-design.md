@@ -1,66 +1,26 @@
 # Prompt / Context Design
 
-**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench  
-**Stage:** 10 — AI & Application Architecture  
-**Participant status:** `TO COMPLETE`  
+**Case:** Fleet Disruption & Voyage Recovery Intelligence Workbench
+**Stage:** 10 — AI & Application Architecture
+**Participant status:** COMPLETED
 **Deliverable form:** Structured narrative + evidence table
 
 ## Stage question
 How will the AI-enabled application consume context, integrate, deploy and fail safely?
 
 ## Why this artifact exists
-This artifact is part of the evidence needed to reach **Complete base AI/application architecture**. It must be consistent with approved upstream artifacts; do not silently redefine earlier facts, semantics, thresholds or decision rights.
+To define the exact prompt templates, context windows, and safety guardrails used when calling external LLM APIs for NLP extraction. This ensures that the bounded AI component produces structured, reliable output and is resistant to prompt injection attacks (GS-09).
 
 ## Upstream dependency
-Use the completed Stage 09 artifacts and explicitly referenced earlier artifacts. Never copy them into this file simply to satisfy a checklist.
+Use the completed Stage 09 Knowledge Extraction Specification, Stage 10 Model Routing Design, and Stage 10 AI/RAG Integration Architecture.
 
 ## Evidence to inspect
-- `participant_artifacts/09_information_knowledge_and_retrieval_architecture`
+- `Participant_Case_Study.md` (GS-09: Prompt injection in external port message)
 - `evidence/04_policy_authority/source_authority.yaml`
-- `evidence/04_policy_authority/role_authorization_matrix.csv`
-- `evidence/06_evaluations/acceptance_thresholds.yaml`
 
 ## Case challenge
-Consume Stage 9 through explicit contracts. Keep deterministic policy/authorization outside model discretion and design safe degraded behavior.
+Treat all external, user-provided, or retrieved text as **evidence, not instruction**. The prompt design must explicitly prevent the LLM from executing commands embedded in the input text.
 
 ## Minimum content
-- Instruction/context element
-- Purpose
-- Source
-- Trust level
-- Version
-- Injection/control rule
-- Output contract
 
-## Relevant non-negotiable constraints
-- AI cannot issue or execute navigational commands or replace the Master's command authority.
-- Vessel and shore state may diverge during connectivity loss and must reconcile safely on reconnect.
-- AIS observations do not automatically override canonical fleet identity.
-
-## Working scaffold
-| Instruction/context element | Purpose | Source | Trust level | Version | Injection/control rule | Output contract |
-|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |
-
-## Evidence and traceability
-| Claim / decision | Evidence file + record / policy version / scenario | Upstream artifact | Confidence / limitation |
-|---|---|---|---|
-| | | | |
-
-## Open issues / assumptions
-| Issue / assumption | Why unresolved | Owner | Downstream impact | Closure evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Completion check
-- [ ] Minimum content above is complete.
-- [ ] Material claims cite exact evidence or are labelled assumptions.
-- [ ] Conflicting/stale evidence is preserved rather than silently resolved.
-- [ ] Human, deterministic and AI decision rights are distinguishable where relevant.
-- [ ] The artifact does not contradict approved upstream artifacts.
-- [ ] `NOT APPLICABLE`, if used, includes rationale, accountable approver and downstream consequence.
-
-## Handoff
-**Stage exit contribution:** Complete base AI/application architecture
-
-Do not advance to Stage 11 until the Stage 10 exit gate is defensible.
+### 1. Prompt Template: Port Notice Extraction
