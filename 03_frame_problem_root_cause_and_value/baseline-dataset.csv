@@ -1,0 +1,10 @@
+metric_name,participant_baseline_value,unit,evidence_source,population_or_grain,calculation_or_definition,limitation_or_note
+median plan time minutes,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
+p90 plan time minutes,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
+duplicate reconciliation pct,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
+late constraint revision pct,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
+blackout gt60 pct,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
+rationale trace missing pct,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
+average api retries,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
+navigation restricted pct,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
+shore link unavailable pct,,,evidence/01_enterprise_sources/workshop_fixture_profile.json,,,Compute/validate from supplied fixture; do not copy blindly.
